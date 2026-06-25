@@ -6,9 +6,9 @@
  *   • Payment Links      → adds ?client_reference_id=<id> to a[href*="buy.stripe.com"]
  *   • Buy Button         → sets client-reference-id on <stripe-buy-button>
  *
- * Load after afileasy-script.js:
- *   <script src="https://afileasy.com/afileasy-script.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
- *   <script src="https://afileasy.com/afileasy-script-stripe.js"></script>
+ * Load after afileasy-script.js (served minified via jsDelivr CDN):
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@main/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@main/afileasy-script-stripe.min.js"></script>
  */
 (function () {
   'use strict';
