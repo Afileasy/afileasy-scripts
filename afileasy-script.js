@@ -25,6 +25,18 @@
   var COOKIE_NAME = 'afileasy_ref';
   var FALLBACK_API_URL = 'https://afileasy.com/api/v1';
   var REFERRAL_PARAMS = ['ref', 'afi', 'aff', 'via'];
+  // Public CDN hosts the script may be served from. When loaded from one of
+  // these, we must NOT derive the API URL from the script origin (the API
+  // does not live on the CDN) — fall back to FALLBACK_API_URL instead.
+  var CDN_HOSTS = [
+    'cdn.jsdelivr.net',
+    'fastly.jsdelivr.net',
+    'unpkg.com',
+    'cdn.statically.io',
+    'raw.githack.com',
+    'rawcdn.githack.com',
+    'raw.githubusercontent.com',
+  ];
   var DEFAULT_COOKIE_DAYS = 30;
   var VERSION = '1.0.0';
 
@@ -122,6 +134,7 @@
    * Order of precedence:
    *   1. data-api-url attribute (explicit override)
    *   2. the origin the script was served from + "/api/v1"
+   *      (skipped when served from a public CDN — the API isn't hosted there)
    *   3. FALLBACK_API_URL
    *
    * Deriving from the script's own src (instead of document.currentScript)
@@ -139,7 +152,11 @@
     try {
       var src = scriptEl.src || (scriptEl.getAttribute('src') || '');
       if (src) {
-        return new URL(src, location.href).origin + '/api/v1';
+        var url = new URL(src, location.href);
+        // Only trust the script origin when it's not a public CDN.
+        if (CDN_HOSTS.indexOf(url.hostname) === -1) {
+          return url.origin + '/api/v1';
+        }
       }
     } catch (e) {
       // fall through to fallback
