@@ -4,8 +4,8 @@
  * Tracks affiliate referral clicks, stores the EventLink id in a first-party
  * cookie, and exposes a public API for checkout / payment-gateway integration.
  *
- * Installation (served minified via jsDelivr CDN):
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@main/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ * Installation (served minified via jsDelivr CDN, pinned to a release tag):
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.0/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
  *
  * Optional attributes:
  *   data-api-url="https://custom-api.example.com/api/v1"  (override API base URL)
