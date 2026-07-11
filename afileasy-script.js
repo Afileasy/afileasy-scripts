@@ -1,11 +1,11 @@
 /**
- * Afileasy Referral Tracking Script v1.0.0
+ * Afileasy Referral Tracking Script v1.0.1
  *
  * Tracks affiliate referral clicks, stores the EventLink id in a first-party
  * cookie, and exposes a public API for checkout / payment-gateway integration.
  *
  * Installation (served minified via jsDelivr CDN, pinned to a release tag):
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.0/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.1/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
  *
  * Optional attributes:
  *   data-api-url="https://custom-api.example.com/api/v1"  (override API base URL)
@@ -38,7 +38,7 @@
     'raw.githubusercontent.com',
   ];
   var DEFAULT_COOKIE_DAYS = 30;
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
 
   // ─── Cookie Helpers ──────────────────────────────────────────────────
 
@@ -64,25 +64,35 @@
     var expires = new Date();
     expires.setTime(expires.getTime() + days * 86400000);
 
-    var parts = [
+    // Attributes shared by both the domain-scoped and host-only variants.
+    var base = [
       name + '=' + encodeURIComponent(value),
       'expires=' + expires.toUTCString(),
       'path=/',
       'samesite=lax',
     ];
 
-    // Set domain to root so the cookie works across subdomains
-    var domain = getRootDomain();
-    if (domain) {
-      parts.push('domain=' + domain);
-    }
-
     // Secure flag only on HTTPS (avoid breaking local dev on HTTP)
     if (location.protocol === 'https:') {
-      parts.push('secure');
+      base.push('secure');
     }
 
-    document.cookie = parts.join('; ');
+    // Prefer a root-domain cookie so it is shared across subdomains
+    // (e.g. example.com ↔ checkout.example.com). But many hosts sit on a
+    // public suffix (*.vercel.app, *.github.io, *.pages.dev, *.netlify.app, …)
+    // where the browser silently rejects a domain-scoped cookie. Set it, read
+    // it back, and fall back to a host-only cookie when the domain variant
+    // didn't stick — this avoids shipping the whole Public Suffix List.
+    var domain = getRootDomain();
+    if (domain) {
+      document.cookie = base.concat('domain=' + domain).join('; ');
+      if (getCookie(name) === value) {
+        return;
+      }
+    }
+
+    // Host-only fallback (no domain attribute) — always accepted.
+    document.cookie = base.join('; ');
   }
 
   /**
@@ -90,18 +100,20 @@
    * @param {string} name
    */
   function deleteCookie(name) {
-    var parts = [
+    var base = [
       name + '=',
       'expires=Thu, 01 Jan 1970 00:00:00 GMT',
       'path=/',
     ];
 
+    // Clear the host-only variant and, when present, the root-domain one —
+    // setCookie may have written either, so expire both.
+    document.cookie = base.join('; ');
+
     var domain = getRootDomain();
     if (domain) {
-      parts.push('domain=' + domain);
+      document.cookie = base.concat('domain=' + domain).join('; ');
     }
-
-    document.cookie = parts.join('; ');
   }
 
   // ─── Domain Helpers ──────────────────────────────────────────────────

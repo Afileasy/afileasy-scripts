@@ -7,8 +7,8 @@
  *   • Buy Button         → sets client-reference-id on <stripe-buy-button>
  *
  * Load after afileasy-script.js (served minified via jsDelivr CDN, pinned to a release tag):
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.0/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.0/afileasy-script-stripe.min.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.1/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.1/afileasy-script-stripe.min.js"></script>
  */
 (function () {
   'use strict';
