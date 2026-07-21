@@ -1,11 +1,12 @@
 /**
- * Afileasy Referral Tracking Script v1.0.1
+ * Afileasy Referral Tracking Script v1.1.0
  *
  * Tracks affiliate referral clicks, stores the EventLink id in a first-party
- * cookie, and exposes a public API for checkout / payment-gateway integration.
+ * cookie, and exposes a public API for checkout / payment-gateway integration
+ * and lead registration (signup forms).
  *
  * Installation (served minified via jsDelivr CDN, pinned to a release tag):
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.0.1/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.1.0/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
  *
  * Optional attributes:
  *   data-api-url="https://custom-api.example.com/api/v1"  (override API base URL)
@@ -15,8 +16,19 @@
  *   window.Afileasy.getReferralCode()  → string | null  (raw referral code from URL)
  *   window.Afileasy.appendRef(url)     → string         (adds afileasy_ref=<id> to a URL)
  *   window.Afileasy.applyHiddenFields()→ void           (fills [data-afileasy-ref] inputs)
+ *   window.Afileasy.trackLead(data)    → Promise        (registers a lead: {email, name?})
  *   window.Afileasy.clear()            → void           (removes tracking cookie)
  *   window.Afileasy.version            → string
+ *
+ * Lead capture (declarative, no extra JS):
+ *   Add data-afileasy-lead to any <form>. On submit, the visitor's email
+ *   (input[data-afileasy-email], falling back to the first input[type=email])
+ *   and optional name (input[data-afileasy-name], falling back to
+ *   input[name=name]) are sent to the Afileasy lead endpoint — only when the
+ *   visit is attributed to a referral. Submission is never blocked.
+ *
+ *   Successful registration dispatches an `afileasy:lead` event on document
+ *   with detail = { customerId, email }.
  */
 (function () {
   'use strict';
@@ -38,7 +50,10 @@
     'raw.githubusercontent.com',
   ];
   var DEFAULT_COOKIE_DAYS = 30;
-  var VERSION = '1.0.1';
+  var VERSION = '1.1.0';
+
+  // Captured at init so the public API (trackLead) can reach the backend.
+  var config = { publicKey: null, apiUrl: FALLBACK_API_URL };
 
   // ─── Cookie Helpers ──────────────────────────────────────────────────
 
@@ -204,13 +219,16 @@
    *
    * @param {string} url
    * @param {object} data
+   * @param {{ keepalive?: boolean }} [options]
    * @returns {Promise<object>}
    */
-  function postJSON(url, data) {
+  function postJSON(url, data, options) {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(data),
+      // keepalive lets the request outlive a page navigation (form submits).
+      keepalive: !!(options && options.keepalive),
     }).then(function (response) {
       if (!response.ok) {
         return response.text().then(function (text) {
@@ -219,6 +237,110 @@
       }
       return response.json();
     });
+  }
+
+  // ─── Lead Registration ───────────────────────────────────────────────
+
+  /**
+   * The lead endpoint lives at /api/track/lead — outside the versioned
+   * /api/v1 prefix the rest of the script talks to.
+   * @returns {string}
+   */
+  function resolveLeadUrl() {
+    return config.apiUrl.replace(/\/v1$/, '') + '/track/lead';
+  }
+
+  /**
+   * Register a lead conversion (signup without purchase) attributed to the
+   * current referral. Sends the EventLink id from the cookie (or the raw
+   * referral code from the URL) — the backend accepts either.
+   *
+   * Resolves with the API response ({ customer_id }) or null when the visit
+   * has no referral to attribute (registering the lead would be meaningless).
+   *
+   * @param {{ email: string, name?: string }} data
+   * @param {{ keepalive?: boolean }} [options]
+   * @returns {Promise<object|null>}
+   */
+  function trackLead(data, options) {
+    data = data || {};
+
+    if (!data.email || !String(data.email).trim()) {
+      return Promise.reject(new Error('[Afileasy] trackLead requires an email.'));
+    }
+
+    if (!config.publicKey) {
+      return Promise.reject(new Error('[Afileasy] trackLead unavailable: missing public key.'));
+    }
+
+    var urlReferral = findReferralInUrl();
+    var code = getCookie(COOKIE_NAME) || (urlReferral && urlReferral.code);
+    if (!code) {
+      return Promise.resolve(null);
+    }
+
+    var payload = {
+      public_key: config.publicKey,
+      code: code,
+      email: String(data.email).trim(),
+      name: data.name ? String(data.name).trim() : null,
+    };
+
+    return postJSON(resolveLeadUrl(), payload, options).then(function (response) {
+      if (typeof CustomEvent === 'function') {
+        document.dispatchEvent(new CustomEvent('afileasy:lead', {
+          detail: { customerId: response && response.customer_id, email: payload.email },
+        }));
+      }
+      return response;
+    });
+  }
+
+  /**
+   * Find the lead email/name inputs inside a form.
+   * @param {HTMLFormElement} form
+   * @returns {{ email: string|null, name: string|null }}
+   */
+  function extractLeadFields(form) {
+    var emailInput =
+      form.querySelector('[data-afileasy-email]') ||
+      form.querySelector('input[type="email"]');
+    var nameInput =
+      form.querySelector('[data-afileasy-name]') ||
+      form.querySelector('input[name="name"]');
+
+    return {
+      email: emailInput && emailInput.value ? emailInput.value.trim() : null,
+      name: nameInput && nameInput.value ? nameInput.value.trim() : null,
+    };
+  }
+
+  /**
+   * Fire-and-forget lead capture for <form data-afileasy-lead> submissions.
+   * Listens in the capture phase on document so forms added after init are
+   * covered, and never blocks or delays the merchant's own submit handling.
+   */
+  function bindLeadForms() {
+    document.addEventListener(
+      'submit',
+      function (event) {
+        var form = event.target;
+        if (!form || !form.hasAttribute || !form.hasAttribute('data-afileasy-lead')) {
+          return;
+        }
+
+        var fields = extractLeadFields(form);
+        if (!fields.email) {
+          return;
+        }
+
+        trackLead({ email: fields.email, name: fields.name }, { keepalive: true })
+          .catch(function (err) {
+            console.error('[Afileasy] Failed to register lead:', err.message || err);
+          });
+      },
+      true
+    );
   }
 
   // ─── Public API ──────────────────────────────────────────────────────
@@ -279,6 +401,7 @@
       getReferralCode: currentCode,
       appendRef: appendRef,
       applyHiddenFields: applyHiddenFields,
+      trackLead: trackLead,
       clear: function () {
         deleteCookie(COOKIE_NAME);
       },
@@ -291,6 +414,9 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', applyHiddenFields);
     }
+
+    // Declarative lead capture for <form data-afileasy-lead>.
+    bindLeadForms();
 
     // Notify integrations that tracking is ready.
     if (typeof CustomEvent === 'function') {
@@ -317,6 +443,9 @@
     }
 
     var apiUrl = resolveApiUrl(scriptEl);
+
+    config.publicKey = publicKey.trim();
+    config.apiUrl = apiUrl;
 
     // 2. If we already have a cookie, just expose and exit
     var existing = getCookie(COOKIE_NAME);
