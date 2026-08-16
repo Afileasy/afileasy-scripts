@@ -18,10 +18,6 @@
   var BUTTON_SELECTOR = 'stripe-buy-button';
   var BUTTON_ATTR = 'client-reference-id';
 
-  /**
-   * Read the referral id from the Afileasy namespace.
-   * @returns {string|null}
-   */
   function getReferralId() {
     if (window.Afileasy && typeof window.Afileasy.getReferral === 'function') {
       return window.Afileasy.getReferral();
@@ -35,7 +31,6 @@
       return;
     }
 
-    // Payment Links
     var links = document.querySelectorAll(LINK_SELECTOR);
     for (var i = 0; i < links.length; i++) {
       if (links[i].href.indexOf(LINK_PARAM) !== -1) {
@@ -45,19 +40,16 @@
       links[i].href += glue + LINK_PARAM + '=' + encodeURIComponent(eventId);
     }
 
-    // Buy Button
     var buttons = document.querySelectorAll(BUTTON_SELECTOR);
     for (var j = 0; j < buttons.length; j++) {
       buttons[j].setAttribute(BUTTON_ATTR, eventId);
     }
   }
 
-  // Retry a few times to catch late-rendered elements.
   var delays = [800, 2000, 4000];
   for (var k = 0; k < delays.length; k++) {
     setTimeout(patch, delays[k]);
   }
 
-  // Also run when the main Afileasy script signals it's ready.
   document.addEventListener('afileasy:ready', patch);
 })();
