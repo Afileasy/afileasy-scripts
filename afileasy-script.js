@@ -1,12 +1,12 @@
 /**
- * Afileasy Referral Tracking Script v1.1.0
+ * Afileasy Referral Tracking Script v1.1.1
  *
  * Tracks affiliate referral clicks, stores the EventLink id in a first-party
  * cookie, and exposes a public API for checkout / payment-gateway integration
  * and lead registration (signup forms).
  *
  * Installation (served minified via jsDelivr CDN, pinned to a release tag):
- *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.1.0/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/Afileasy/afileasy-scripts@v1.1.1/afileasy-script.min.js" data-afileasy="YOUR_PUBLIC_KEY"></script>
  *
  * Optional attributes:
  *   data-api-url="https://custom-api.example.com/api/v1"  (override API base URL)
@@ -46,7 +46,7 @@
     'raw.githubusercontent.com',
   ];
   var DEFAULT_COOKIE_DAYS = 30;
-  var VERSION = '1.1.0';
+  var VERSION = '1.1.1';
 
   var config = { publicKey: null, apiUrl: FALLBACK_API_URL };
 
