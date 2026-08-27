@@ -1,0 +1,24 @@
+{
+  "name": "@afileasy/scripts",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Afileasy referral tracking scripts — TypeScript sources, minified browser bundles served from cdn.afileasy.com",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch --no-minify",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:dry": "node scripts/deploy.mjs --dry-run",
+    "release": "npm run check && npm run deploy"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}
