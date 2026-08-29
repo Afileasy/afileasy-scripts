@@ -108,10 +108,10 @@ for (const channel of channels) {
 }
 
 if (!dryRun) {
-  const entry = manifest.files['afileasy-script.min.js'];
+  const entry = manifest.files['script.min.js'];
   console.log(
     `\nDone. Install snippet:\n\n` +
-      `  <script src="https://cdn.afileasy.com/v${version}/afileasy-script.min.js"\n` +
+      `  <script src="https://cdn.afileasy.com/v${version}/script.min.js"\n` +
       `          integrity="${entry?.integrity ?? ''}"\n` +
       `          crossorigin="anonymous"\n` +
       `          data-afileasy="YOUR_PUBLIC_KEY"></script>\n`,

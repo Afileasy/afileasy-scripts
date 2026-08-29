@@ -60,8 +60,8 @@ const apiUrl = process.env.AFILEASY_API_URL?.trim() || DEFAULT_API_URL;
 
 /** Entry point → public file name (without the `.js` extension). */
 const ENTRIES = {
-  'afileasy-script': 'src/entries/core.ts',
-  'afileasy-script-stripe': 'src/entries/stripe.ts',
+  'script': 'src/entries/core.ts',
+  'script-stripe': 'src/entries/stripe.ts',
 };
 
 const suffix = minify ? '.min' : '';

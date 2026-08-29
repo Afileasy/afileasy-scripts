@@ -14,7 +14,7 @@ import type {
 } from '../types/public';
 
 function resolveLeadUrl(): string {
-  return config.apiUrl.replace(/\/v1$/, '') + '/track/lead';
+  return config.apiUrl + '/track/lead';
 }
 
 /**

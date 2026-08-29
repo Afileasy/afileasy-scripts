@@ -9,7 +9,7 @@ at `https://cdn.afileasy.com`.
 Pin an exact version — released paths are immutable and cached for a year:
 
 ```html
-<script src="https://cdn.afileasy.com/v1.2.0/afileasy-script.min.js"
+<script src="https://cdn.afileasy.com/v1.2.0/script.min.js"
         integrity="sha384-…"
         crossorigin="anonymous"
         data-afileasy="YOUR_PUBLIC_KEY"></script>
@@ -22,7 +22,7 @@ Optional Stripe plugin — stamps the referral id onto Payment Links and
 `<stripe-buy-button>`. Load it **after** the core script:
 
 ```html
-<script src="https://cdn.afileasy.com/v1.2.0/afileasy-script-stripe.min.js"></script>
+<script src="https://cdn.afileasy.com/v1.2.0/script-stripe.min.js"></script>
 ```
 
 `https://cdn.afileasy.com/v1/…` also resolves to the latest 1.x build with a
@@ -95,8 +95,8 @@ src/
     log.ts         Prefixed console output
     api.ts         Builds and publishes window.Afileasy
   entries/
-    core.ts        → afileasy-script.min.js
-    stripe.ts      → afileasy-script-stripe.min.js
+    core.ts        → script.min.js
+    stripe.ts      → script-stripe.min.js
 scripts/
   build.mjs        esbuild bundle + SRI/size manifest
   deploy.mjs       Upload to R2, one prefix per release channel
@@ -160,7 +160,7 @@ version instead, or pass `--force` for a deliberate overwrite.
 | `v1.2.0/` | `public, max-age=31536000, immutable` | Production installs |
 | `v1/` | `public, max-age=600, s-maxage=600, stale-while-revalidate=86400` | Auto-updating installs |
 
-Each prefix holds `afileasy-script.min.js`, `afileasy-script-stripe.min.js`,
+Each prefix holds `script.min.js`, `script-stripe.min.js`,
 their `.map` files, and `manifest.json`.
 
 ## Cloudflare setup (once)
