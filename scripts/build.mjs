@@ -62,6 +62,7 @@ const apiUrl = process.env.AFILEASY_API_URL?.trim() || DEFAULT_API_URL;
 const ENTRIES = {
   'script': 'src/entries/core.ts',
   'script-stripe': 'src/entries/stripe.ts',
+  'script-zouti': 'src/entries/zouti.ts',
 };
 
 const suffix = minify ? '.min' : '';
