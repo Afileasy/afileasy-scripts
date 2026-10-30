@@ -25,6 +25,14 @@ Optional Stripe plugin — stamps the referral id onto Payment Links and
 <script src="https://cdn.afileasy.com/v1.2.0/script-stripe.min.js"></script>
 ```
 
+Optional Zouti plugin — stamps the referral id as `utm_term` on links to the
+Zouti checkout (`*.zouti.com.br`), which echoes it back in the order webhook's
+`utm_data`. Load it **after** the core script, on the sales page:
+
+```html
+<script src="https://cdn.afileasy.com/v1.2.0/script-zouti.min.js"></script>
+```
+
 `https://cdn.afileasy.com/v1/…` also resolves to the latest 1.x build with a
 10-minute edge cache, for installs that prefer automatic patch updates.
 
@@ -97,6 +105,7 @@ src/
   entries/
     core.ts        → script.min.js
     stripe.ts      → script-stripe.min.js
+    zouti.ts       → script-zouti.min.js
 scripts/
   build.mjs        esbuild bundle + SRI/size manifest
   deploy.mjs       Upload to R2, one prefix per release channel
@@ -160,7 +169,7 @@ version instead, or pass `--force` for a deliberate overwrite.
 | `v1.2.0/` | `public, max-age=31536000, immutable` | Production installs |
 | `v1/` | `public, max-age=600, s-maxage=600, stale-while-revalidate=86400` | Auto-updating installs |
 
-Each prefix holds `script.min.js`, `script-stripe.min.js`,
+Each prefix holds `script.min.js`, `script-stripe.min.js`, `script-zouti.min.js`,
 their `.map` files, and `manifest.json`.
 
 ## Cloudflare setup (once)
